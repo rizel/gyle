@@ -14,4 +14,6 @@ INTERESTING_JOB_TITLES = [
 ]
 
 
-TOPICS = ['youtube', 'github']
+TOPICS = ['github']
+
+GITHUB_PAGE = "https://github.com/"

@@ -3,7 +3,7 @@ from playwright.sync_api import sync_playwright
 
 from retriever import obtain_data
 from parser import parse_informational_data
-from configuration import INTERESTING_JOB_TITLES, TOPICS
+from configuration import INTERESTING_JOB_TITLES, TOPICS, GITHUB_PAGE
 from global_variables import *
 
 
@@ -13,6 +13,9 @@ global interesting_people
 
 for job_title in INTERESTING_JOB_TITLES:
     interesting_people[job_title] = []
+
+youtube = None
+
 
 def print_obtained_data():
     pprint(argyle_countries)
@@ -25,17 +28,81 @@ def print_obtained_data():
 
 
 
+def process_user(context, username, user_index):
+    users_page_url  = f"https://github.com/{username}?tab=repositories"
+    users_page      = context.new_page()
+    users_page.goto(users_page_url)
+    users_page.screenshot(path=f"repositories_of_{username}.png")
+    users_page.close()
+    # process webpage repositories content
+
+
+# this function executed with at least one user in the search result.
+def evaluate_each_user(context, page, total_users):
+    username    = page.eval_on_selector( f":nth-match(a.color-text-secondary, 1)", 'e => e.textContent')
+    user_found  = False
+
+    for user_index in range(1,total_users+1):
+        # page.wait_for_selector(f":nth-match(.mb-1, {user_index})")
+        about_user  = page.eval_on_selector(f":nth-match(.mb-1, {user_index})", 'e => e.textContent')
+        username    = page.eval_on_selector( f":nth-match(a.color-text-secondary, {user_index})", 'e => e.textContent')
+        print(username)
+        # try to match the user.
+        if 'argyle' in about_user:
+            user_found  = True
+            user_data   = process_user(context, username, user_index)
+        page.wait_for_load_state('networkidle')
+
+    if not user_found:
+        # process the first user
+        user_data   = process_user(context, username, 1)
+        
+
+
+
+def interact_with_github():
+    name = 'Lucas Queiroz'
+    github_fullname = f"fullname:{name}"
+    title = f"Search · fullname:{name} · GitHub"
+    total_users = 0
+
+    with sync_playwright() as p:
+        # browser = p.firefox.launch(headless=False, slow_mo=350)
+        browser = p.firefox.launch()
+        context = browser.new_context()
+        page = context.new_page()
+        page.goto(f'https://github.com/search?q=fullname%3A%22{name}%22')
+        try:
+            section_text = page.eval_on_selector('div.codesearch-results h3', 'e => e.textContent')
+            total_users = int(section_text.split()[0])
+            print(total_users)
+        except:
+            print('no users were found.')
+        finally:
+            # 'div#user_search_results '
+            # process first 7 at most.
+            if total_users > 7: 
+                total_users = 7
+
+            # evaluate search result's list.    
+            if total_users > 0:
+                evaluate_each_user(context, page, total_users)
+            else:
+                print("there's no user to evaluate")
+            browser.close()
+
+
+def find_in_github():
+    for person in interesting_people:
+        None
+
+        
+def find_in_youtube():
+    None
+
+
 # obtain_data()
-parse_informational_data()
-print_obtained_data()
-
-
-'''
-with sync_playwright() as p:
-    browser = p.firefox.launch()
-    page = browser.new_page()
-    page.goto(about_argyle)
-
-    print(page.title())
-    browser.close()
-'''
+# parse_informational_data()
+# print_obtained_data()
+# find_in_github()
+interact_with_github()
