@@ -1,0 +1,21 @@
+- create a folder for each title job mentioned.
+	create a file inside folder mentioned above, with each user's information.
+		DATA
+		--
+		name
+		image
+		city
+		country
+		languages
+		programming languages
+		repositories
+		repositories description
+
+- create a folder named: programming languages.
+	list programming languages mentioned.
+- create a folder named: countries.
+	list countries and cities mentioned.
+- create a folder named: languages.
+	list languages.
+
+All these files with .md extension.
