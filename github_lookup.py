@@ -23,11 +23,12 @@ def look_for_best_match(context, page, total_users):
 
     for user_index in range(1,total_users+1):
         best_user_match['username']    = page.eval_on_selector( f":nth-match(a.color-text-secondary, {user_index})", 'e => e.textContent')
-        best_user_match['about_user']  = page.eval_on_selector(f":nth-match(.mb-1, {user_index})", 'e => e.textContent')
         print(best_user_match['username'])
-
+        try:
+            best_user_match['about_user']  = page.eval_on_selector(f":nth-match(.mb-1, {user_index})", 'e => e.textContent')
+        except: pass
         # try to match the user.
-        if 'argyle' in best_user_match['about_user']:
+        if (best_user_match['about_user'] is not None) and ('argyle' in best_user_match['about_user']):
             user_found  = True
             best_user_match['users_url'] = snapshot_user(context, best_user_match['username'])
         page.wait_for_load_state('networkidle')
@@ -51,11 +52,12 @@ def search_in_github(name):
         page.goto(f'https://github.com/search?q=fullname%3A%22{name}%22')
         try:
             section_text = page.eval_on_selector('div.codesearch-results h3', 'e => e.textContent')
+            print(section_text)
             total_users = int(section_text.split()[0])
-            print(total_users)
-        except:
-            print('no users were found.')
-            best_user_match = None
+            print("github users: "+str(total_users))
+        except Exception as e:
+            print('no users in github were found.')
+            best_user_match = {}
         finally:
             # 'div#user_search_results '
             # process first 5 at most.
@@ -66,8 +68,7 @@ def search_in_github(name):
             if total_users > 0:
                 best_user_match = look_for_best_match(context, page, total_users)
             else:
-                print("there's no user to evaluate")
-                best_user_match = None
+                best_user_match = {}
             browser.close()
 
     return best_user_match

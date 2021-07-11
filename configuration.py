@@ -17,3 +17,5 @@ INTERESTING_JOB_TITLES = [
 TOPICS = ['github']
 
 GITHUB_PAGE = "https://github.com/"
+
+JOB_TITLE_FOLDER = 'job titles'
